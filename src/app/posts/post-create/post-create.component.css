@@ -1,0 +1,12 @@
+mat-card {
+  align-items: flex-start;
+}
+
+mat-form-field {
+  align-self: stretch;
+}
+
+button {
+  justify-self: flex-start;
+  margin: 1rem;
+}

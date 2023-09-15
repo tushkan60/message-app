@@ -1,1 +1,13 @@
-<p>post-list works!</p>
+<mat-accordion class="item" multi="true" *ngIf="posts.length > 0">
+  <mat-expansion-panel *ngFor="let post of posts">
+    <mat-expansion-panel-header>
+      {{post.title}}
+    </mat-expansion-panel-header>
+    <p>{{post.content}}</p>
+    <mat-action-row>
+      <button type="button" mat-raised-button color="primary">Edit</button>
+      <button type="button" mat-raised-button color="warn">Delete</button>
+    </mat-action-row>
+  </mat-expansion-panel>
+</mat-accordion>
+<h2 *ngIf="posts.length === 0" class="mat-body-1">No post added yet</h2>

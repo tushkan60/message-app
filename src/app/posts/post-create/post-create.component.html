@@ -1,1 +1,21 @@
-<p>post-create works!</p>
+
+  <form [formGroup]="messageForm" (submit)="onAddPost()">
+    <mat-card>
+      <mat-form-field class="example-full-width">
+        <mat-label>Message title</mat-label>
+        <input matInput formControlName="title" required>
+        <mat-error *ngIf="!messageForm.controls.title.valid">
+          Please enter a title of message
+        </mat-error>
+      </mat-form-field>
+      <mat-form-field>
+        <mat-label>Message content</mat-label>
+        <textarea matInput rows="5" formControlName="content" required></textarea>
+        <mat-error *ngIf="!messageForm.controls.content.valid">
+          Please enter a message
+        </mat-error>
+      </mat-form-field>
+      <button type="submit" mat-raised-button color="primary">Save post</button>
+    </mat-card>
+  </form>
+
