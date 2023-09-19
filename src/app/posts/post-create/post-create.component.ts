@@ -1,7 +1,9 @@
-import { Component, EventEmitter, OnInit, Output } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { Post } from '../post.model';
-import { FormControl, FormGroup } from '@angular/forms';
+import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { PostService } from '../post.service';
+import { ActivatedRoute, ParamMap, Router } from '@angular/router';
+import { mimeType } from './mime-type.validator';
 
 @Component({
   selector: 'app-post-create',
@@ -10,26 +12,80 @@ import { PostService } from '../post.service';
 })
 export class PostCreateComponent implements OnInit {
   messageForm: FormGroup;
+  private isEdit: boolean = false;
+  private id: string;
+  isLoading: boolean = false;
+  imagePreview: string;
 
-  constructor(public postsService: PostService) {}
+  constructor(
+    public postsService: PostService,
+    public route: ActivatedRoute,
+    public router: Router,
+  ) {}
 
   ngOnInit() {
-    this.messageForm = new FormGroup({
-      title: new FormControl(null),
-      content: new FormControl(null),
+    this.messageForm = this.createForm(null, null, null, null);
+    this.route.paramMap.subscribe((paramMap: ParamMap) => {
+      if (paramMap.has('id')) {
+        this.isEdit = true;
+        this.id = paramMap.get('id');
+      } else {
+        this.isEdit = false;
+        this.id = null;
+      }
     });
+
+    if (this.id) {
+      this.isLoading = true;
+      this.postsService.getPost(this.id).subscribe((res) => {
+        const title = res.post.title;
+        const content = res.post.content;
+        const imagePath = res.post.imagePath;
+        this.isLoading = false;
+        this.messageForm = this.createForm(title, content, null, imagePath);
+      });
+    }
   }
 
-  onAddPost() {
-    if (this.messageForm.invalid) {
+  onSavePost() {
+    if (this.messageForm.invalid && !this.messageForm.get('imagePath').value) {
       return;
     }
+
     const post: Post = this.messageForm.value;
-    this.postsService.addPost(post);
-    this.messageForm.reset();
-    this.messageForm.markAllAsTouched();
-    Object.keys(this.messageForm.controls).forEach((key) => {
-      this.messageForm.get(key).setErrors(null);
+
+    if (this.isEdit) {
+      post._id = this.id;
+      this.postsService.updatePost(post);
+    } else {
+      this.postsService.addPost(post);
+    }
+    this.isLoading = false;
+    this.router.navigate(['/']);
+  }
+
+  onImageLoaded(event: Event) {
+    const file = (event.target as HTMLInputElement).files[0];
+    this.messageForm.patchValue({ image: file });
+    this.messageForm.get('image').updateValueAndValidity();
+    const reader = new FileReader();
+    reader.onload = () => {
+      this.imagePreview = reader.result as string;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  createForm(title: string, content: string, image: File, imagePath: string) {
+    return new FormGroup({
+      title: new FormControl(title, {
+        validators: [Validators.required, Validators.minLength(3)],
+      }),
+      content: new FormControl(content, { validators: [Validators.required] }),
+      image: new FormControl(image, {
+        validators: [Validators.required],
+        asyncValidators: [mimeType],
+      }),
+      imagePath: new FormControl(imagePath),
     });
   }
 }

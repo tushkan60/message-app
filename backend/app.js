@@ -1,9 +1,37 @@
+const path = require("path");
 const express = require("express");
 const bodyParser = require("body-parser");
+const mongoose = require("mongoose").default;
+const dotenv = require("dotenv");
+const postsRoutes = require("./routes/postsRoutes");
 
 const app = express();
+dotenv.config({ path: "./config.env" });
+
+const DB = process.env.DATABASE.replace(
+  "<PASSWORD>",
+  process.env.DATABASE_PASSWORD,
+);
+
+async function main() {
+  await mongoose.connect(DB);
+}
+
+main()
+  .then(() => {
+    console.log("Connected to MongoDB!");
+  })
+  .catch((err) => console.log(err));
+
+mongoose.connection.on("connected", () => {
+  console.log("Mongoose connected to MongoDB!");
+});
+mongoose.connection.on("error", (err) => {
+  console.error("Mongoose connection error:", err);
+});
 
 app.use(bodyParser.json());
+app.use("/images", express.static(path.join("backend/images")));
 
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -19,33 +47,6 @@ app.use((req, res, next) => {
   next();
 });
 
-app.post("/api/posts", (req, res, next) => {
-  const post = req.body;
-
-  console.log(post);
-
-  res.status(201).json({
-    message: "posts added successfully",
-  });
-});
-
-app.get("/api/posts", (req, res, next) => {
-  const posts = [
-    {
-      id: "123",
-      title: "post 1",
-      content: "this is a 1 post",
-    },
-    {
-      id: "124",
-      title: "post 2",
-      content: "this is a 2 post",
-    },
-  ];
-  res.status(200).json({
-    message: "posts fetched successfully",
-    posts,
-  });
-});
+app.use("/api/posts", postsRoutes);
 
 module.exports = app;

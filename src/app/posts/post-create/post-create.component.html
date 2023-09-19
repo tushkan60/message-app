@@ -1,21 +1,29 @@
+   <form [formGroup]="messageForm" (submit)="onSavePost()" *ngIf="!isLoading">
+     <mat-card>
+       <mat-form-field class="example-full-width">
+         <mat-label>Message title</mat-label>
+         <input matInput formControlName="title">
+         <mat-error *ngIf="!messageForm.controls.title.valid">
+           Please enter a title of message
+         </mat-error>
+       </mat-form-field>
+       <mat-form-field>
+         <mat-label>Message content</mat-label>
+         <textarea matInput rows="5" formControlName="content"></textarea>
+         <mat-error *ngIf="!messageForm.controls.content.valid">
+           Please enter a message
+         </mat-error>
+       </mat-form-field>
+       <div class="image-preview" *ngIf="imagePreview!=='' && imagePreview && messageForm.get('image').valid">
+         <img [src]="imagePreview" [alt]="messageForm.value.title">
+       </div>
+       <mat-action-row>
+         <button type="button" mat-raised-button color="accent" (click)="fileLoader.click()">Load image</button>
+         <input type="file" style="visibility: hidden" #fileLoader (change)="onImageLoaded($event)">
+         <button type="submit" mat-raised-button color="primary">Save post</button>
+       </mat-action-row>
+     </mat-card>
 
-  <form [formGroup]="messageForm" (submit)="onAddPost()">
-    <mat-card>
-      <mat-form-field class="example-full-width">
-        <mat-label>Message title</mat-label>
-        <input matInput formControlName="title" required>
-        <mat-error *ngIf="!messageForm.controls.title.valid">
-          Please enter a title of message
-        </mat-error>
-      </mat-form-field>
-      <mat-form-field>
-        <mat-label>Message content</mat-label>
-        <textarea matInput rows="5" formControlName="content" required></textarea>
-        <mat-error *ngIf="!messageForm.controls.content.valid">
-          Please enter a message
-        </mat-error>
-      </mat-form-field>
-      <button type="submit" mat-raised-button color="primary">Save post</button>
-    </mat-card>
-  </form>
+   </form>
+   <mat-spinner style="margin: auto" *ngIf="isLoading"></mat-spinner>
 
